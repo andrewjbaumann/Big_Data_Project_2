@@ -26,12 +26,9 @@ import org.anormcypher._
 
 class Parser(file:String) {
   implicit val connection = Neo4jREST()
-
   private val fileName = file
 
   def Parsing():Unit = {
-
-    //Cypher("MATCH n DELETE n").execute()
     println(fileName)
     fileName match {
       case "distance.csv"     => distanceCSV()
@@ -45,36 +42,34 @@ class Parser(file:String) {
   }
 
   def distanceCSV():Unit = {
-
+    Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/distance.csv' AS line MATCH (o1:OrganizationNode),(o2:OrganizationNode) WHERE o1.OName = line[0] AND o2.OName = line[1] CREATE (o1)-[r:DISTANCE_TO{Distance:line[2]}]->(o2)").execute()
   }
 
   def interestCSV():Unit = {
-
+    Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/interest.csv' AS line MATCH (u:UserNode) WHERE u.UID = line[0] MERGE(ee:InterestNode {IName:line[1]}) CREATE (u)-[r:INTERESTED{ILevel:line[2]}]->(ee)").execute()
+    Cypher("MATCH (i:InterestNode) WHERE i.IName = 'Interest' DELETE i").execute()
   }
 
   def organizationCSV():Unit = {
-
+    Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/organization.csv' AS line MATCH (u:UserNode) WHERE u.UID = line[0] MERGE(oo:OrganizationNode {OName:line[1], OType:line[2]}) CREATE (u)-[r:BELONGS_TO]->(oo)").execute()
+    Cypher("MATCH (o:OrganizationNode) WHERE o.OName = 'organization' DELETE o").execute()
   }
 
   def projectCSV():Unit = {
-
+    Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/project.csv' AS line MATCH (u:UserNode) WHERE u.UID = line[0] MERGE(pp:ProjectNode {PName:line[1]}) CREATE (u)-[r:WORKS_ON]->(pp)").execute()
+    Cypher("MATCH (p:ProjectNode) WHERE p.PName = 'Project' DELETE p").execute()
   }
 
   def skillCSV():Unit = {
-    //Cypher("CREATE(ss:SKILL {SName: s1}").execute()
-    Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line MATCH (a:UserNode) WHERE a.UID = line[0] MERGE(ss:SkillNode {SName:line[1]}) CREATE (a)-[r:SKILLED{SLevel:line[2]}]->(ss)").execute()
-    //Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line MATCH (d:SKILL {SkillName:line[1]}) WITH d SKIP 1 DELETE d").execute()
-    Cypher("""MATCH (n:SkillNode) WHERE n.SName = 'Skill ' DELETE n""").execute()
-    //Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line CREATE(ss:SKILL {SkillName:line[1]}) MATCH(a:USER) WHERE a.UID = line[0] MATCH(b:SKILL) WHERE b.SkillName = line[1] CREATE (a)-[r:SKILLED]->(b)").execute()
-    //Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line CREATE(ss:SKILL {SkillName:line[1]}) MATCH (a:USER),(b:SKILL) WHERE a.UID = line[0] AND b.SkillName = line[1] CREATE (a)-[r:'IS_SKILLED_AT']->(b)").execute()
-    //Cypher("MATCH s WHERE s.UID = 'Skill' DELETE s").execute()
-
+    Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line MATCH (u:UserNode) WHERE u.UID = line[0] MERGE(ss:SkillNode {SName:line[1]}) CREATE (u)-[r:SKILLED{SLevel:line[2]}]->(ss)").execute()
+    Cypher("MATCH (s:SkillNode) WHERE s.SName = 'Skill ' DELETE s").execute()
   }
 
   def userCSV():Unit = {
+    Cypher("MATCH n-[r]->m DELETE r DELETE m DELETE n").execute()
     Cypher("MATCH n DELETE n").execute()
     Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/user.csv' AS line CREATE(uu:UserNode {UID:line[0], FName:line[1], LName:line[2]})").execute()
-    Cypher("MATCH (n:UserNode) WHERE n.UID = 'User id' DELETE n").execute()
+    Cypher("MATCH (u:UserNode) WHERE u.UID = 'User id' DELETE u").execute()
   }
 
   /*def getUserResults():Unit = {
