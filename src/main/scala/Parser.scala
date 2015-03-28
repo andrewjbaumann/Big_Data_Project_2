@@ -62,9 +62,9 @@ class Parser(file:String) {
 
   def skillCSV():Unit = {
     //Cypher("CREATE(ss:SKILL {SName: s1}").execute()
-    Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line MERGE(ss:SkillNode {SName:line[1]})").execute()
+    Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line MATCH (a:UserNode) WHERE a.UID = line[0] MERGE(ss:SkillNode {SName:line[1]}) CREATE (a)-[r:SKILLED]->(ss)").execute()
     //Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line MATCH (d:SKILL {SkillName:line[1]}) WITH d SKIP 1 DELETE d").execute()
-    Cypher("""MATCH (n:SkillNode) WHERE n.SName = 'Skill' DELETE n""").execute()
+    Cypher("""MATCH (n:SkillNode) WHERE n.SName = 'Skill ' DELETE n""").execute()
     //Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line CREATE(ss:SKILL {SkillName:line[1]}) MATCH(a:USER) WHERE a.UID = line[0] MATCH(b:SKILL) WHERE b.SkillName = line[1] CREATE (a)-[r:SKILLED]->(b)").execute()
     //Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line CREATE(ss:SKILL {SkillName:line[1]}) MATCH (a:USER),(b:SKILL) WHERE a.UID = line[0] AND b.SkillName = line[1] CREATE (a)-[r:'IS_SKILLED_AT']->(b)").execute()
     //Cypher("MATCH s WHERE s.UID = 'Skill' DELETE s").execute()
