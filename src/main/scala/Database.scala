@@ -30,6 +30,10 @@ class Database(args:Array[String]) {
   def start():Unit = {
     createUsers(csvFiles(0))
     createSkills(csvFiles(1))
+    createInterests(csvFiles(2))
+    createProjects(csvFiles(3))
+    createOrganizations(csvFiles(4))
+    createDistances(csvFiles(5))
   }
 
   def createUsers(file:String):Unit = {
@@ -42,4 +46,23 @@ class Database(args:Array[String]) {
     skillsCSV.Parsing()
   }
 
+  def createInterests(file:String):Unit = {
+    val interestsCSV = new Parser(file)
+    interestsCSV.Parsing()
+  }
+
+  def createProjects(file:String):Unit = {
+    val projectsCSV = new Parser(file)
+    projectsCSV.Parsing()
+  }
+
+  def createOrganizations(file:String):Unit = {
+    val organizationsCSV = new Parser(file)
+    organizationsCSV.Parsing()
+  }
+
+  def createDistances(file:String):Unit = {
+    val distancesCSV = new Parser(file)
+    distancesCSV.Parsing()
+  }
 }
