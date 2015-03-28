@@ -62,7 +62,7 @@ class Parser(file:String) {
 
   def skillCSV():Unit = {
     //Cypher("CREATE(ss:SKILL {SName: s1}").execute()
-    Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line MATCH (a:UserNode) WHERE a.UID = line[0] MERGE(ss:SkillNode {SName:line[1]}) CREATE (a)-[r:SKILLED]->(ss)").execute()
+    Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line MATCH (a:UserNode) WHERE a.UID = line[0] MERGE(ss:SkillNode {SName:line[1]}) CREATE (a)-[r:SKILLED{SLevel:line[2]}]->(ss)").execute()
     //Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line MATCH (d:SKILL {SkillName:line[1]}) WITH d SKIP 1 DELETE d").execute()
     Cypher("""MATCH (n:SkillNode) WHERE n.SName = 'Skill ' DELETE n""").execute()
     //Cypher("LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line CREATE(ss:SKILL {SkillName:line[1]}) MATCH(a:USER) WHERE a.UID = line[0] MATCH(b:SKILL) WHERE b.SkillName = line[1] CREATE (a)-[r:SKILLED]->(b)").execute()
