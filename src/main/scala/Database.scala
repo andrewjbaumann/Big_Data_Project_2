@@ -29,11 +29,17 @@ class Database(args:Array[String]) {
 
   def start():Unit = {
     createUsers(csvFiles(0))
+    createSkills(csvFiles(1))
   }
 
   def createUsers(file:String):Unit = {
-    val userCSV = new Parser(file)
-    userCSV.Parsing()
+    val usersCSV = new Parser(file)
+    usersCSV.Parsing()
+  }
+
+  def createSkills(file:String):Unit = {
+    val skillsCSV = new Parser(file)
+    skillsCSV.Parsing()
   }
 
 }
