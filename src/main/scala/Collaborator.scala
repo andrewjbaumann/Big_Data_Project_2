@@ -5,8 +5,8 @@
  * Description: Program that will parse multiple csv files and communicate with a neo4j database using cypher query
  *              language.
  *              1. You need to write three programs in one of the following languages: scala, java, python, or C++,
- *              although scale is prefered. The first program called DbLoader will load the data into a database.
- *              The second and third programs are called QueryCollabrator and QueryColOfCol, respectively.
+ *              although scale is preferred. The first program called DbLoader will load the data into a database.
+ *              The second and third programs are called QueryCollaborator and QueryColOfCol, respectively.
  *              2. The input for DbLoader is a fold that includes six files for the data. In project fold of the
  *              blackboard, there is a compressed sample data fold. All you input data should use the same file names,
  *              headers, and formats. Although only a few records in the sample data, I will test your programs using
@@ -21,13 +21,17 @@
  *              To run:     scala Collaborator input1.txt input2.txt input3.txt input4.txt input5.txt input6.txt
  */
 
-import scala.io.Source
-
 object Collaborator {
 
   def main(args: Array[String]): Unit = {
     println("Hello! this is the second project")
-    val myDatabase = new Database(args)
-    myDatabase.start()
+
+    val myDbLoader = new DbLoader(args)
+    myDbLoader.start()
+
+    val myQueryCollaborator = new QueryCollaborator()
+    myQueryCollaborator.start()
+
+    return
   }
 }
