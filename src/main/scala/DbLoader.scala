@@ -23,10 +23,9 @@
 
 import org.anormcypher._
 
-class DbLoader(args:Array[String]) {
+class DbLoader(fileLoc:String) {
 
   implicit val connection = Neo4jREST()
-  private var csvFiles:Array[String] = args
 
   def start():Unit = {
     Cypher(
@@ -37,24 +36,27 @@ class DbLoader(args:Array[String]) {
 
     println("BUILDING DATABASE...")
 
-    createUsers(csvFiles(0))
-    createSkills(csvFiles(1))
-    createInterests(csvFiles(2))
-    createProjects(csvFiles(3))
-    createOrganizations(csvFiles(4))
-    createDistances(csvFiles(5))
+    createUsers()
+    createSkills()
+    createInterests()
+    createProjects()
+    createOrganizations()
+    createDistances()
 
     println("DATABASE BUILD COMPLETE \n")
 
     return
   }
 
-  def createUsers(file:String):Unit = {
+  def createUsers():Unit = {
+
+    var file:String = fileLoc + "user.csv"
+
     Cypher(
       """
-        LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/user.csv' AS line
+        LOAD CSV FROM {fileLocation} AS line
         CREATE(uu:UserNode {UID:line[0], FName:line[1], LName:line[2]})
-      """).execute()
+      """).on("fileLocation" -> file).execute()
     Cypher(
       """
         MATCH (u:UserNode)
@@ -65,15 +67,18 @@ class DbLoader(args:Array[String]) {
     return
   }
 
-  def createSkills(file:String):Unit = {
+  def createSkills():Unit = {
+
+    var file:String = fileLoc + "skill.csv"
+
     Cypher(
       """
-        LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/skill.csv' AS line
+        LOAD CSV FROM {fileLocation} AS line
         MATCH (u:UserNode)
         WHERE u.UID = line[0]
         MERGE(ss:SkillNode {SName:line[1]})
         CREATE (u)-[r:SKILLED{SLevel:toFloat(line[2])}]->(ss)
-      """).execute()
+      """).on("fileLocation" -> file).execute()
     Cypher(
       """
         MATCH (s:SkillNode)
@@ -84,15 +89,18 @@ class DbLoader(args:Array[String]) {
     return
   }
 
-  def createInterests(file:String):Unit = {
+  def createInterests():Unit = {
+
+    var file:String = fileLoc + "interest.csv"
+
     Cypher(
       """
-        LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/interestTest.csv' AS line
+        LOAD CSV FROM {fileLocation} AS line
         MATCH (u:UserNode)
         WHERE u.UID = line[0]
         MERGE(ee:InterestNode {IName:line[1]})
         CREATE (u)-[r:INTERESTED{ILevel:toFloat(line[2])}]->(ee)
-      """).execute()
+      """).on("fileLocation" -> file).execute()
     Cypher(
       """"
         MATCH (i:InterestNode)
@@ -103,15 +111,18 @@ class DbLoader(args:Array[String]) {
     return
   }
 
-  def createProjects(file:String):Unit = {
+  def createProjects():Unit = {
+
+    var file:String = fileLoc + "project.csv"
+
     Cypher(
       """
-        LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/project.csv' AS line
+        LOAD CSV FROM {fileLocation} AS line
         MATCH (u:UserNode)
         WHERE u.UID = line[0]
         MERGE(pp:ProjectNode {PName:line[1]})
         CREATE (u)-[r:WORKS_ON]->(pp)
-      """).execute()
+      """).on("fileLocation" -> file).execute()
     Cypher(
       """"
         MATCH (p:ProjectNode)
@@ -122,33 +133,39 @@ class DbLoader(args:Array[String]) {
     return
   }
 
-  def createOrganizations(file:String):Unit = {
-      Cypher(
-        """
-          LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/organizationTest.csv' AS line
-          MATCH (u:UserNode)
-          WHERE u.UID = line[0]
-          MERGE(oo:OrganizationNode {OName:line[1], OType:line[2]})
-          CREATE (u)-[r:BELONGS_TO]->(oo)
-        """).execute()
-      Cypher(
-        """
-          MATCH (o:OrganizationNode)
-          WHERE o.OName = 'organization'
-          DELETE o
-        """).execute()
+  def createOrganizations():Unit = {
+
+    var file:String = fileLoc + "organization.csv"
+
+    Cypher(
+      """
+        LOAD CSV FROM {fileLocation} AS line
+        MATCH (u:UserNode)
+        WHERE u.UID = line[0]
+        MERGE(oo:OrganizationNode {OName:line[1], OType:line[2]})
+        CREATE (u)-[r:BELONGS_TO]->(oo)
+      """).on("fileLocation" -> file).execute()
+    Cypher(
+      """
+        MATCH (o:OrganizationNode)
+        WHERE o.OName = 'organization'
+        DELETE o
+      """).execute()
 
     return
   }
 
-  def createDistances(file:String):Unit = {
+  def createDistances():Unit = {
+
+    var file:String = fileLoc + "distance.csv"
+
     Cypher(
       """
-        LOAD CSV FROM 'file:///Users/Tony/IdeaProjects/CSCI_493_Project_2/distance.csv' AS line
+        LOAD CSV FROM {fileLocation} AS line
         MATCH (o1:OrganizationNode),(o2:OrganizationNode)
         WHERE o1.OName = line[0] AND o2.OName = line[1]
         CREATE (o1)-[r:DISTANCE_TO{Distance:toFloat(line[2])}]->(o2)
-      """).execute()
+      """).on("fileLocation" -> file).execute()
 
     return
   }
