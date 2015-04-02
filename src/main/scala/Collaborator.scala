@@ -26,7 +26,7 @@ object Collaborator {
   def main(args: Array[String]): Unit = {
     println("Hello! this is the second project")
 
-    val myDbLoader = new DbLoader(args)
+    val myDbLoader = new DbLoader(args(0))
     myDbLoader.start()
 
     val myQueryCollaborator = new QueryCollaborator()

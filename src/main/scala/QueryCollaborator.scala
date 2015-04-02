@@ -26,6 +26,8 @@ import org.anormcypher._
 class QueryCollaborator {
 
   implicit val connection = Neo4jREST()
+  private var user:String = ""
+  private var distance:Double = 0
 
   def start():Unit = {
     query()
@@ -35,8 +37,7 @@ class QueryCollaborator {
 
   def query():Unit = {
     var valid:Boolean = false
-    var response, user:String = ""
-    var distance:Double = 0
+    var response:String = ""
 
     print("(Y/y) to query database for users with similar skills within a bound distance: ")
     response = Console.readLine()
@@ -51,32 +52,6 @@ class QueryCollaborator {
       print("Enter distance: ")
       distance = Console.readDouble()
 
-      /*
-
-      val req = Cypher(
-        """
-           START n=node(*)
-           WHERE n.UID = {user}
-           RETURN n.FName
-        """).on("user" -> user)
-
-      val stream = req()
-      println(stream.map(row =>{row[String]("n.FName")}).toList + "\n")
-
-      */
-
-      /*val comm = Cypher(
-        """
-          START user = node(*)
-          WHERE user.UID = {x}
-          MATCH (o: OrganizationNode), (u: UserNode), (i: InterestNode), (s: SkillNode)
-          WHERE (user-->o AND u-->o)
-          AND (u<>user)
-          AND ((user-->i AND u-->i) OR (user-->s AND u-->s))
-          RETURN  u.FName as username, u.LName as lastname
-        """).on("x" -> user)
-      */
-
       val comm = Cypher(
         """
           START user = node(*)
@@ -90,7 +65,6 @@ class QueryCollaborator {
         """).on("x" -> user, "y" -> distance)
 
       val commStream = comm()
-      //println(commStream.map(row =>{row[String]("a.OName")}).toList + "\n")
 
       println(commStream.map(row =>{row[String]("id")->row[String]("skill")->row[String]("organ")->row[String]("dis")}).toList)
 
