@@ -1,5 +1,5 @@
 /**
- * Title:       Collaborator.scala
+ * Title:       QueryColOfCol.scala
  * Authors:     Andrew Baumann, Tony Zheng
  * Modified on: 3/27/2015
  * Description: Program that will parse multiple csv files and communicate with a neo4j database using cypher query
@@ -21,20 +21,52 @@
  *              To run:     scala Collaborator input1.txt input2.txt input3.txt input4.txt input5.txt input6.txt
  */
 
-object Collaborator {
+import org.anormcypher._
 
-  def main(args: Array[String]): Unit = {
-    println("Hello! this is the second project")
+class QueryColOfCol {
 
-    val myDbLoader = new DbLoader(args(0))
-    myDbLoader.start()
+  implicit val connection = Neo4jREST()
+  private var user:String = ""
 
-    //val myQueryCollaborator = new QueryCollaborator()
-    //myQueryCollaborator.start()
-
-    val myQueryColOfCol = new QueryColOfCol()
-    myQueryColOfCol.start()
+  def start():Unit = {
+    query()
 
     return
+  }
+
+  def query():Unit = {
+    var valid:Boolean = false
+    var response:String = ""
+
+    print("(Y/y) to query database for users with similar interests working on the same project: ")
+    response = Console.readLine()
+
+    if(response == "y" || response == "Y") {
+      valid = true
+    }
+
+    if(valid == true) {
+      print("Enter user id: ")
+      user = Console.readLine()
+
+      val comm = Cypher(
+        """
+          START user = node(*)
+          MATCH (u:UserNode),(i:InterestNode), (p:ProjectNode)
+          WHERE (user.UID = {x}) AND (u-->i) AND (user-->i) AND (u-->p) AND (user-->p) AND (u<>user)
+          MATCH (u:UserNode), (i:InterestNode), (p:ProjectNode)
+          WHERE (u-->i) AND (user-->i) AND (user-->p) AND (u-->p) AND (u<>user)
+          RETURN u.UID as id
+        """).on("x" -> user)
+
+      val commStream = comm()
+
+      println(commStream.map(row => {row[String]("id")}).toList)
+
+      query()
+    }
+    else {
+      return
+    }
   }
 }

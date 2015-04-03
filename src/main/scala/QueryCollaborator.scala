@@ -21,6 +21,7 @@
  *              To run:     scala Collaborator input1.txt input2.txt input3.txt input4.txt input5.txt input6.txt
  */
 
+import scala.io.Source
 import org.anormcypher._
 
 class QueryCollaborator {
@@ -60,7 +61,7 @@ class QueryCollaborator {
           MATCH (u:UserNode), ((uo)-[rr:DISTANCE_TO]->(o:OrganizationNode)), (i:InterestNode), (s:SkillNode)
           WHERE (user-->o AND user-->i AND user-->s AND u-->o and u<>user)
           AND (u-->i OR u-->s)
-          AND (rr.Distance <= 10)
+          AND (rr.Distance <= toInt({y}))
           RETURN u.UID as id, s.SName as skill, o.OName as organ, rr.Distance as dis
         """).on("x" -> user, "y" -> distance)
 
