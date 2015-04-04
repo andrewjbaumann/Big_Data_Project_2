@@ -21,6 +21,7 @@
  *              To run:     scala Collaborator input1.txt input2.txt input3.txt input4.txt input5.txt input6.txt
  */
 
+import scala.io.Source
 import org.anormcypher._
 
 class DbLoader(fileLoc:String) {
@@ -49,8 +50,12 @@ class DbLoader(fileLoc:String) {
   }
 
   def createUsers():Unit = {
+    val src = Source.fromFile("user.csv")
+    val header = src.getLines().take(1).toList(0).toString()
+    src.close()
 
-    var file:String = fileLoc + "user.csv"
+    val x:String = header.split(',')(0)
+    val file:String = fileLoc + "user.csv"
 
     Cypher(
       """
@@ -60,16 +65,20 @@ class DbLoader(fileLoc:String) {
     Cypher(
       """
         MATCH (u:UserNode)
-        WHERE u.UID = 'User id'
+        WHERE u.UID = {header}
         DELETE u
-      """).execute()
+      """).on("header" -> x).execute()
 
     return
   }
 
   def createSkills():Unit = {
+    val src = Source.fromFile("skill.csv")
+    val header = src.getLines().take(1).toList(0).toString()
+    src.close()
 
-    var file:String = fileLoc + "skill.csv"
+    val x:String = header.split(',')(0)
+    val file:String = fileLoc + "skill.csv"
 
     Cypher(
       """
@@ -82,16 +91,20 @@ class DbLoader(fileLoc:String) {
     Cypher(
       """
         MATCH (s:SkillNode)
-        WHERE s.SName = 'Skill '
+        WHERE s.SName = {header}
         DELETE s
-      """).execute()
+      """).on("header" -> x).execute()
 
     return
   }
 
   def createInterests():Unit = {
+    val src = Source.fromFile("interest.csv")
+    val header = src.getLines().take(1).toList(0).toString()
+    src.close()
 
-    var file:String = fileLoc + "interest.csv"
+    val x:String = header.split(',')(0)
+    val file:String = fileLoc + "interest.csv"
 
     Cypher(
       """
@@ -104,16 +117,20 @@ class DbLoader(fileLoc:String) {
     Cypher(
       """"
         MATCH (i:InterestNode)
-        WHERE i.IName = 'Interest'
+        WHERE i.IName = {header}
         DELETE i
-      """).execute()
+      """).on("header" -> x).execute()
 
     return
   }
 
   def createProjects():Unit = {
+    val src = Source.fromFile("project.csv")
+    val header = src.getLines().take(1).toList(0).toString()
+    src.close()
 
-    var file:String = fileLoc + "project.csv"
+    val x:String = header.split(',')(0)
+    val file:String = fileLoc + "project.csv"
 
     Cypher(
       """
@@ -126,16 +143,20 @@ class DbLoader(fileLoc:String) {
     Cypher(
       """"
         MATCH (p:ProjectNode)
-        WHERE p.PName = 'Project'
+        WHERE p.PName = {header}
         DELETE p
-      """).execute()
+      """).on("header" -> x).execute()
 
     return
   }
 
   def createOrganizations():Unit = {
+    val src = Source.fromFile("organization.csv")
+    val header = src.getLines().take(1).toList(0).toString()
+    src.close()
 
-    var file:String = fileLoc + "organization.csv"
+    val x:String = header.split(',')(0)
+    val file:String = fileLoc + "organization.csv"
 
     Cypher(
       """
@@ -148,16 +169,15 @@ class DbLoader(fileLoc:String) {
     Cypher(
       """
         MATCH (o:OrganizationNode)
-        WHERE o.OName = 'organization'
+        WHERE o.OName = {header}
         DELETE o
-      """).execute()
+      """).on("header" -> x).execute()
 
     return
   }
 
   def createDistances():Unit = {
-
-    var file:String = fileLoc + "distance.csv"
+    val file:String = fileLoc + "distance.csv"
 
     Cypher(
       """
