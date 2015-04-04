@@ -1,7 +1,7 @@
 /**
  * Title:       Collaborator.scala
  * Authors:     Andrew Baumann, Tony Zheng
- * Modified on: 3/27/2015
+ * Modified on: 4/4/2015
  * Description: Program that will parse multiple csv files and communicate with a neo4j database using cypher query
  *              language.
  *              1. You need to write three programs in one of the following languages: scala, java, python, or C++,
@@ -18,20 +18,38 @@
  *              more details.
  * Build with:  Scala IDE (Eclipse or IntelliJ) or using the following commands on the glab machines
  *              To compile: scalac *.scala
- *              To run:     scala Collaborator input1.txt input2.txt input3.txt input4.txt input5.txt input6.txt
+ *              To run:     scala Collaborator 'fileLocation'
  */
 
+/**
+ * Collaborator object that contains main method where it creates instances of the three classes that will be run to
+ * simulate the three programs, DbLoader, QueryCollaborator, and QueryColOfCol.
+ */
 object Collaborator {
 
+  /**
+   * Main method that takes in command line arguments and creates instances of the different classes needed to simulate
+   * the three programs.
+   */
   def main(args: Array[String]): Unit = {
     println("Hello! this is the second project")
 
+    /**
+     * Creates an instance of DbLoader, passing the command line argument (where the file is located in local directory)
+     * and runs a method within.
+     */
     val myDbLoader = new DbLoader(args(0))
     myDbLoader.start()
 
-    //val myQueryCollaborator = new QueryCollaborator()
-    //myQueryCollaborator.start()
+    /**
+     * Creates an instance of QueryCollaborator and runs a method within.
+     */
+    val myQueryCollaborator = new QueryCollaborator()
+    myQueryCollaborator.start()
 
+    /**
+     * Creates an instance of QueryColOfCol and runs a method within.
+     */
     val myQueryColOfCol = new QueryColOfCol()
     myQueryColOfCol.start()
 

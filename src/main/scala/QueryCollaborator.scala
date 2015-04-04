@@ -1,7 +1,7 @@
 /**
  * Title:       QueryCollaborator.scala
  * Authors:     Andrew Baumann, Tony Zheng
- * Modified on: 3/27/2015
+ * Modified on: 4/4/2015
  * Description: Program that will parse multiple csv files and communicate with a neo4j database using cypher query
  *              language.
  *              1. You need to write three programs in one of the following languages: scala, java, python, or C++,
@@ -18,28 +18,45 @@
  *              more details.
  * Build with:  Scala IDE (Eclipse or IntelliJ) or using the following commands on the glab machines
  *              To compile: scalac *.scala
- *              To run:     scala Collaborator input1.txt input2.txt input3.txt input4.txt input5.txt input6.txt
+ *              To run:     scala Collaborator 'fileLocation'
+ * Notes:       Completed(?) - Andrew
  */
 
 import org.anormcypher._
 
+/**
+ * QueryCollaborator class that asks the user for a user id and a distance to find other users with common skills and
+ * interests. Output will be ordered by the weight of total skills and interests
+ */
 class QueryCollaborator {
 
+  /**
+   * Connects to the neo4j database (version run on my machine does not require authentication, whereas other versions
+   * may require a different setup).
+   */
   implicit val connection = Neo4jREST()
+  //implicit val connection = Neo4jREST("localhost", 7474, "/db/data/")
   private var user:String = ""
   private var distance:Double = 0
 
+  /**
+   * Method that calls the query method.
+   */
   def start():Unit = {
     query()
 
     return
   }
 
+  /**
+   * Tail recursive method that loops, asking the user if they want to query the database for users with similar skills
+   * and/or interests as a user id.
+   */
   def query():Unit = {
     var valid:Boolean = false
     var response:String = ""
 
-    print("(Y/y) to query database for users with similar skills within a bound distance: ")
+    print("(Y/y) to query database for users with similar skills and/or interests within a bound distance: ")
     response = Console.readLine()
 
     if(response == "y" || response == "Y") {
@@ -52,28 +69,38 @@ class QueryCollaborator {
       print("Enter distance: ")
       distance = Console.readDouble()
 
+      /**
+       * Cypher query to find colleagues of an organization who share similar skills and/or interests within a given
+       * distance.
+       */
       val comm = Cypher(
         """
-          START sn=node(*)
-          WHERE sn.UID={x}
-          MATCH (sno:OrganizationNode)
-          WHERE (sn-->sno)
-          MATCH (u:UserNode), (o:OrganizationNode), (o-[r:DISTANCE_TO]-sno)
-          WHERE (sn<>u) AND (r.Distance < {y}) AND ((u-->o) OR (u-->sno))
-          MATCH (i:InterestNode), (s:SkillNode)
-          WHERE (sn-->i) AND (sn-->s) AND ((u-->i) OR (u-->s))
-          RETURN u.UID as id, s.SName as skill, o.OName as organ, i.IName as inter
-        """
-        ).on("x" -> user, "y" -> distance)
+          START user = node(*)
+          WHERE user.UID = {x}
+          MATCH (user)-->(uo:Organization)
+          MATCH (u:UserNode), ((uo)-[rr:DISTANCE_TO]->(o:OrganizationNode)), (i:InterestNode), (s:SkillNode)
+          WHERE (user-->o AND user-->i AND user-->s AND u-->o and u<>user)
+          AND (u-->i OR u-->s)
+          AND (rr.Distance <= toInt({y}))
+          RETURN u.UID as id, s.SName as skill, o.OName as organ, rr.Distance as dis
+        """).on("x" -> user, "y" -> distance)
 
       val commStream = comm()
 
-      println("Format:")
-      println("((((USERID, SKILL),ORGANIZATION),INTEREST)")
-      println(commStream.map(row =>{row[String]("id")->row[String]("skill")->row[String]("organ")->row[String]("inter")}).toList)
+      /**
+       * Prints out a mapped list of returned values from the cypher query.
+       */
+      println(commStream.map(row =>{row[String]("id")->row[String]("skill")->row[String]("organ")->row[String]("dis")}).toList)
 
+      /**
+       * Tail recursively calls itself
+       */
       query()
     }
+
+    /**
+     * If Boolean check fails, it ends the loop.
+     */
     else {
       return
     }

@@ -1,7 +1,7 @@
 /**
  * Title:       DbLoader.scala
  * Authors:     Andrew Baumann, Tony Zheng
- * Modified on: 3/27/2015
+ * Modified on: 4/4/2015
  * Description: Program that will parse multiple csv files and communicate with a neo4j database using cypher query
  *              language.
  *              1. You need to write three programs in one of the following languages: scala, java, python, or C++,
@@ -18,25 +18,44 @@
  *              more details.
  * Build with:  Scala IDE (Eclipse or IntelliJ) or using the following commands on the glab machines
  *              To compile: scalac *.scala
- *              To run:     scala Collaborator input1.txt input2.txt input3.txt input4.txt input5.txt input6.txt
+ *              To run:     scala Collaborator 'fileLocation'
+ * Notes:       Completed(✓) - Tony
  */
 
 import scala.io.Source
 import org.anormcypher._
 
+/**
+ * DbLoader class that takes in a string input (file location of csvs) and runs queries on the neo4j database, creating
+ * entities and relations between them.
+ */
 class DbLoader(fileLoc:String) {
 
+  /**
+   * Connects to the neo4j database (version run on my machine does not require authentication, whereas other versions
+   * may require a different setup).
+   */
   implicit val connection = Neo4jREST()
+  //implicit val connection = Neo4jREST("localhost", 7474, "/db/data/")
 
+  /**
+   * Method that starts by clearing the database of any relations, entities tied to relations, and lone entities for
+   * testing.
+   */
   def start():Unit = {
     Cypher(
     """
-        MATCH n-[r]->m
-        DELETE r, m, n
+        MATCH n-[r]->m, o
+        DELETE r, m, n, o
     """).execute()
 
     println("BUILDING DATABASE...")
 
+    /**
+     * calls the different methods within this class to run the different queries on the database. In the methods that
+     * involve creating entities, since the LOAD CSV query create a node with the header, it is deleted immediately
+     * after creation by storing the header id from the file itself and deleting entities with that id title.
+     */
     createUsers()
     createSkills()
     createInterests()
@@ -49,6 +68,11 @@ class DbLoader(fileLoc:String) {
     return
   }
 
+  /**
+   * Method that creates the user entities by loading information from the csv provided. The csv files must have their
+   * appropriate names, however headers of the csv files do not need the appropriate titles as long as the format is the
+   * same.
+   */
   def createUsers():Unit = {
     val src = Source.fromFile("user.csv")
     val header = src.getLines().take(1).toList(0).toString()
@@ -72,6 +96,11 @@ class DbLoader(fileLoc:String) {
     return
   }
 
+  /**
+   * Method that creates the skill entities and relations between users and skills by loading information from the csv
+   * provided. The csv files must have their appropriate names, however headers of the csv files do not need the
+   * appropriate titles as long as the format is the same.
+   */
   def createSkills():Unit = {
     val src = Source.fromFile("skill.csv")
     val header = src.getLines().take(1).toList(0).toString()
@@ -98,6 +127,11 @@ class DbLoader(fileLoc:String) {
     return
   }
 
+  /**
+   * Method that creates the interest entities and relations between users and interests by loading information from the
+   * csv provided. The csv files must have their appropriate names, however headers of the csv files do not need the
+   * appropriate titles as long as the format is the same.
+   */
   def createInterests():Unit = {
     val src = Source.fromFile("interest.csv")
     val header = src.getLines().take(1).toList(0).toString()
@@ -124,6 +158,11 @@ class DbLoader(fileLoc:String) {
     return
   }
 
+  /**
+   * Method that creates the project entities and relations between users and projects by loading information from the
+   * csv provided. The csv files must have their appropriate names, however headers of the csv files do not need the
+   * appropriate titles as long as the format is the same.
+   */
   def createProjects():Unit = {
     val src = Source.fromFile("project.csv")
     val header = src.getLines().take(1).toList(0).toString()
@@ -150,6 +189,11 @@ class DbLoader(fileLoc:String) {
     return
   }
 
+  /**
+   * Method that creates the organization entities and relations between users and organizations by loading information
+   * from the csv provided. The csv files must have their appropriate names, however headers of the csv files do not
+   * need the appropriate titles as long as the format is the same.
+   */
   def createOrganizations():Unit = {
     val src = Source.fromFile("organization.csv")
     val header = src.getLines().take(1).toList(0).toString()
@@ -176,6 +220,11 @@ class DbLoader(fileLoc:String) {
     return
   }
 
+  /**
+   * Method that creates the distance relations between organizations by loading information from the csv provided. The
+   * csv files must have their appropriate names, however headers of the csv files do not need the appropriate titles as
+   * long as the format is the same.
+   */
   def createDistances():Unit = {
     val file:String = fileLoc + "distance.csv"
 
