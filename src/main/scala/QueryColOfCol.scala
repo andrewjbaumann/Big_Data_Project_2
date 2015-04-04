@@ -38,7 +38,7 @@ class QueryColOfCol {
     var valid:Boolean = false
     var response:String = ""
 
-    print("(Y/y) to query database for users with similar interests working on the same project: ")
+    print("(Y/y) to query database for collaborators of collaborators with similar interests: ")
     response = Console.readLine()
 
     if(response == "y" || response == "Y") {
@@ -52,11 +52,9 @@ class QueryColOfCol {
       val comm = Cypher(
         """
           START user = node(*)
-          MATCH (u:UserNode),(i:InterestNode), (p:ProjectNode)
-          WHERE (user.UID = {x}) AND (u-->i) AND (user-->i) AND (u-->p) AND (user-->p) AND (u<>user)
-          MATCH (u:UserNode), (i:InterestNode), (p:ProjectNode)
-          WHERE (u-->i) AND (user-->i) AND (user-->p) AND (u-->p) AND (u<>user)
-          RETURN u.UID as id
+          MATCH (u:UserNode),(i:InterestNode), (p:ProjectNode), (col:UserNode), (colOfCol:UserNode)
+          WHERE (user.UID = {x}) AND ((u)-[firstDegConn]->(col)-[secondDegConn]->(colOfCol)) AND (colOfCol-->i) AND (user-->i) AND (colOfCol-->p) AND (user-->p) AND (colOfCol<>user)
+          RETURN colOfCol.UID as id
         """).on("x" -> user)
 
       val commStream = comm()
