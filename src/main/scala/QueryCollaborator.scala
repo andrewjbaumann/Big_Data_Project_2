@@ -75,15 +75,17 @@ class QueryCollaborator {
        */
       val comm = Cypher(
         """
-          START user = node(*)
-          WHERE user.UID = {x}
-          MATCH (user)-->(uo:Organization)
-          MATCH (u:UserNode), ((uo)-[rr:DISTANCE_TO]->(o:OrganizationNode)), (i:InterestNode), (s:SkillNode)
-          WHERE (user-->o AND user-->i AND user-->s AND u-->o and u<>user)
-          AND (u-->i OR u-->s)
-          AND (rr.Distance <= toInt({y}))
-          RETURN u.UID as id, s.SName as skill, o.OName as organ, rr.Distance as dis
-        """).on("x" -> user, "y" -> distance)
+          START sn=node(*)
+          WHERE sn.UID={x}
+          MATCH (sno:OrganizationNode)
+          WHERE (sn-->sno)
+          MATCH (u:UserNode), (o:OrganizationNode), (o-[r:DISTANCE_TO]-sno)
+          WHERE (sn<>u) AND (r.Distance < {y}) AND ((u-->o) OR (u-->sno))
+          MATCH (i:InterestNode), (s:SkillNode)
+          WHERE (sn-->i) AND (sn-->s) AND ((u-->i) OR (u-->s))
+          RETURN u.UID as id, s.SName as skill, o.OName as organ, i.IName as inter
+        """
+        ).on("x" -> user, "y" -> distance)
 
       val commStream = comm()
 
