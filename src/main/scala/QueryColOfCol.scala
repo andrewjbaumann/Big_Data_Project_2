@@ -22,6 +22,19 @@
  * Notes:       Completed(✓) - Tony/Andrew
  */
 
+/*
+  Tony: 
+        List One:
+          c, potatoes
+          c, corn
+          e, corn
+        List Two (input):
+          find 
+          potatoes
+          tomatoes
+          
+          Returns only C
+*/
 import org.anormcypher._
 
 /**
