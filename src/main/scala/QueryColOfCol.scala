@@ -22,19 +22,6 @@
  * Notes:       Completed(✓) - Tony/Andrew
  */
 
-/*
-  Tony: 
-        List One:
-          c, potatoes
-          c, corn
-          e, corn
-        List Two (input):
-          find 
-          potatoes
-          tomatoes
-          
-          Returns only C
-*/
 import org.anormcypher._
 
 /**
@@ -50,7 +37,7 @@ class QueryColOfCol {
   //implicit val connection = Neo4jREST("localhost", 7474, "/db/data/")
   private var user:String = ""
   private var particularInterests:List[String] = List()
-
+  private var colOfColList:List[String] = List()
 
   /**
    * Method that calls the query method.
@@ -73,13 +60,13 @@ class QueryColOfCol {
     var moreResponse:String = ""
 
     /**
-     * Asks user whether they want to query the database or not
+     * Asks user whether they want to query the database or not.
      */
     print("(Y/y) to query database for collaborators of collaborators with similar interests: ")
     response = Console.readLine()
 
     /**
-     * Boolean check for a confirmation of continuing
+     * Boolean check for a confirmation of continuing.
      */
     if(response == "y" || response == "Y") {
       valid = true
@@ -89,24 +76,36 @@ class QueryColOfCol {
      * If Boolean check is passed, it continues with the query.
      */
     if(valid == true) {
+
+      /**
+       * Has user ask for the query user.
+       */
       print("Enter user id: ")
       user = Console.readLine()
 
+      /**
+       * Has user enter in at least one interest for the colleagues of colleagues.
+       */
       print("Enter a particular interest for the col of col: ")
       particularInterests = particularInterests.:+(Console.readLine())
 
-      print("More interests to look for? ('Y'/'y'): ")
+      /**
+       * Asks user if they want to look for more interests
+       */
+      print("(Y/y) to look for more interests: ")
       moreResponse = Console.readLine()
 
       if(moreResponse == "y" || moreResponse == "Y") {
         more = true
       }
 
+      /**
+       * Continually asks the user if they want to look for more interests for the colleagues of colleagues.
+       */
       while(more == true) {
         print("Enter a particular interest for the col of col: ")
         particularInterests = particularInterests.:+(Console.readLine())
-
-        print("More interests to look for? ('Y'/'y'): ")
+        print("(Y/y) to look for more interests: ")
         moreResponse = Console.readLine()
 
         if(moreResponse == "y" || moreResponse == "Y") {
@@ -117,34 +116,39 @@ class QueryColOfCol {
         }
       }
 
+      println("\nFinding all colleagues of colleagues who have these interests: " + particularInterests)
+
+      /**
+       * Unwinds interests and finds all cols of cols who have the interests listed.
+       */
       val comm = Cypher(
         """
           START user = node(*)
-          MATCH (user:UserNode), (col:UserNode), (colOfCol:UserNode), (p1:ProjectNode), (p2:ProjectNode), (i:InterestNode)
+          UNWIND {myList} as partInt
+          MATCH (user:UserNode), (col:UserNode), (colOfCol:UserNode), (p1:ProjectNode), (p2:ProjectNode), (i:InterestNode{IName:partInt})
           WHERE (user.UID = {x}) AND (user<>col) AND ((user)-->(p1)<--(col)-->(p2)<--(colOfCol)) AND (colOfCol-->i)
-          RETURN colOfCol.UID as id, i.IName as interests
-        """).on("x" -> user)
+          RETURN colOfCol.UID as id, count(colOfCol.UID) as counter
+        """).on("x" -> user, "myList" -> particularInterests)
 
       val commStream = comm()
 
       /**
-       * Prints out a mapped list of returned values from the cypher query.
+       * Prints out a mapped list of returned values from the cypher query while filtering out those who do not have all
+       * the interests listed.
        */
-      var myList = (commStream.map(row => {row[String]("id")->row[String]("interests")}).toList)
-      println(myList)
+      var myList = (commStream.map(row => {row[String]("id")->row[Int]("counter")}).toList).filterNot(line => line._2 != particularInterests.size)
 
-      myList.contains('C','potatoes')
-      /*for(x<-myList) {
-        for(y<-particularInterests){
-          if(x._2==y){
-            println(x + " CONTAINS " + y)
-          }
-          else {
-            println(x+ " DOESNT CONTAIN " + y)
-          }
-        }
+      for(x <- myList) {
+        colOfColList = colOfColList.:+(x._1)
       }
-      */
+
+      println("All colleagues of colleagues who have those interests: " + colOfColList + "\n")
+
+      /**
+       * Clears the lists for another query.
+       */
+      particularInterests = List()
+      colOfColList = List()
 
       /**
        * Tail recursively calls itself
