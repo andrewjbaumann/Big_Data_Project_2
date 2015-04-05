@@ -36,6 +36,8 @@ class QueryColOfCol {
   implicit val connection = Neo4jREST()
   //implicit val connection = Neo4jREST("localhost", 7474, "/db/data/")
   private var user:String = ""
+  private var particularInterests:List[String] = List()
+
 
   /**
    * Method that calls the query method.
@@ -54,6 +56,8 @@ class QueryColOfCol {
   def query():Unit = {
     var valid:Boolean = false
     var response:String = ""
+    var more:Boolean = false
+    var moreResponse:String = ""
 
     /**
      * Asks user whether they want to query the database or not
@@ -75,28 +79,37 @@ class QueryColOfCol {
       print("Enter user id: ")
       user = Console.readLine()
 
-      /**
-       * Cypher query to find colleagues of colleagues with at least one similar interest as the given user id.
-       */
-      /*val comm = Cypher(
-        """
-          START user = node(*)
-          MATCH (user:UserNode), (col:UserNode), (colOfCol:UserNode), (p1:ProjectNode), (p2:ProjectNode), (i:InterestNode)
-          WHERE (user.UID = {x}) AND (user<>col) AND ((user)-->(p1)<--(col)-->(p2)<--(colOfCol)) AND ((user)-->(i)<--(colOfCol))
-          RETURN colOfCol.UID as id
-        """).on("x" -> user)
-      */
+      print("Enter a particular interest for the col of col: ")
+      particularInterests = particularInterests.:+(Console.readLine())
 
-      /**
-       * Cypher query to find colleagues of colleagues. Email that the professor sent says they do not need shared
-       * interests, however i believe he means that just for colleagues, not colleagues of colleagues.
-       */
+      print("More interests to look for? ('Y'/'y'): ")
+      moreResponse = Console.readLine()
+
+      if(moreResponse == "y" || moreResponse == "Y") {
+        more = true
+      }
+
+      while(more == true) {
+        print("Enter a particular interest for the col of col: ")
+        particularInterests = particularInterests.:+(Console.readLine())
+
+        print("More interests to look for? ('Y'/'y'): ")
+        moreResponse = Console.readLine()
+
+        if(moreResponse == "y" || moreResponse == "Y") {
+          more = true
+        }
+        else {
+          more = false
+        }
+      }
+
       val comm = Cypher(
         """
           START user = node(*)
-          MATCH (user:UserNode), (col:UserNode), (colOfCol:UserNode), (p1:ProjectNode), (p2:ProjectNode)
-          WHERE (user.UID = {x}) AND (user<>col) AND ((user)-->(p1)<--(col)-->(p2)<--(colOfCol))
-          RETURN colOfCol.UID as id
+          MATCH (user:UserNode), (col:UserNode), (colOfCol:UserNode), (p1:ProjectNode), (p2:ProjectNode), (i:InterestNode)
+          WHERE (user.UID = {x}) AND (user<>col) AND ((user)-->(p1)<--(col)-->(p2)<--(colOfCol)) AND (colOfCol-->i)
+          RETURN colOfCol.UID as id, i.IName as interests
         """).on("x" -> user)
 
       val commStream = comm()
@@ -104,7 +117,21 @@ class QueryColOfCol {
       /**
        * Prints out a mapped list of returned values from the cypher query.
        */
-      println(commStream.map(row => {row[String]("id")}).toList)
+      var myList = (commStream.map(row => {row[String]("id")->row[String]("interests")}).toList)
+      println(myList)
+
+      myList.contains('C','potatoes')
+      /*for(x<-myList) {
+        for(y<-particularInterests){
+          if(x._2==y){
+            println(x + " CONTAINS " + y)
+          }
+          else {
+            println(x+ " DOESNT CONTAIN " + y)
+          }
+        }
+      }
+      */
 
       /**
        * Tail recursively calls itself
