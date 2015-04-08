@@ -80,7 +80,6 @@ class DbLoader(fileLoc:String) {
 
     val x:String = header.split(',')(0)
     val file:String = fileLoc + "user.csv"
-
     Cypher(
       """
         LOAD CSV FROM {fileLocation} AS line
@@ -114,13 +113,13 @@ class DbLoader(fileLoc:String) {
         LOAD CSV FROM {fileLocation} AS line
         MATCH (u:UserNode)
         WHERE u.UID = line[0]
-        MERGE(ss:SkillNode {SName:line[1]})
-        CREATE (u)-[r:SKILLED{SLevel:toFloat(line[2])}]->(ss)
+        MERGE(ss:SkillNode {Name:line[1]})
+        CREATE (u)-[r:SKILLED{Level:toFloat(line[2])}]->(ss)
       """).on("fileLocation" -> file).execute()
     Cypher(
       """
         MATCH (s:SkillNode)
-        WHERE s.SName = {header}
+        WHERE s.Name = {header}
         DELETE s
       """).on("header" -> x).execute()
 
@@ -145,13 +144,13 @@ class DbLoader(fileLoc:String) {
         LOAD CSV FROM {fileLocation} AS line
         MATCH (u:UserNode)
         WHERE u.UID = line[0]
-        MERGE(ee:InterestNode {IName:line[1]})
-        CREATE (u)-[r:INTERESTED{ILevel:toFloat(line[2])}]->(ee)
+        MERGE(ee:InterestNode {Name:line[1]})
+        CREATE (u)-[r:INTERESTED{Level:toFloat(line[2])}]->(ee)
       """).on("fileLocation" -> file).execute()
     Cypher(
       """"
         MATCH (i:InterestNode)
-        WHERE i.IName = {header}
+        WHERE i.Name = {header}
         DELETE i
       """).on("header" -> x).execute()
 
