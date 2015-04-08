@@ -68,7 +68,6 @@ class QueryCollaborator {
       user = Console.readLine()
       print("Enter distance: ")
       distance = Console.readDouble()
-
       /**
        * Cypher query to find colleagues of an organization who share similar skills and/or interests within a given
        * distance.
@@ -78,15 +77,17 @@ class QueryCollaborator {
           START sn = node(*)
           WHERE sn.UID = {x}
           MATCH (sno: OrganizationNode)
-          WHERE (sn --> sno)
+          WHERE (sn-->sno)
           MATCH (u: UserNode), (o: OrganizationNode), (o -[r: DISTANCE_TO] -sno)
           WHERE (sn <> u) AND (r.Distance < {y}) AND ((u --> o) OR (u --> sno))
-          MATCH (i: InterestNode), (i -[ir:INTERESTED]-u)
-          WHERE (u --> i <-- sn)
-          RETURN u.UID as id, o.OName as organ, i.IName as inter, ir.ILevel as level
+          MATCH (n), (is-[ir:INTERESTED|SKILLED]-u)
+          WHERE (u-->is<--sn)
+          MATCH (oo: OrganizationNode)
+          WHERE (u-->oo)
+          RETURN u.UID as id, oo.OName as organ, is.Name as isname, ir.Level as level
          """.stripMargin
         ).on("x" -> user, "y" -> distance)
-
+/*
       val scomm = Cypher(
         """
           START sn = node(*)
@@ -97,25 +98,21 @@ class QueryCollaborator {
           WHERE (sn <> u) AND (r.Distance < {y}) AND ((u --> o) OR (u --> sno))
           MATCH (s: SkillNode), (s-[sr:SKILLED]-u)
           WHERE (u -->s<-- sn)
-          MATCH (op: OrganizationNode)
-          WHERE (u-->op)
           RETURN u.UID as id, op.OName as organ, s.SName as skill, sr.SLevel as level
         """.stripMargin
-      ).on("x" -> user, "y" -> distance)
+      ).on("x" -> user, "y" -> distance)*/
 
       val commStreami = icomm()
-      val commStreams = scomm()
+    //  val commStreams = scomm()
 
       /**
        * Prints out a mapped list of returned values from the cypher query.
        */
       println("This is the list of nodes with similar interests:")
-      println(commStreami.map(row =>{row[String]("id")->row[String]("organ")->row[String]("inter")->row[BigDecimal]("level")}).toList)
+      println(commStreami.map(row =>{row[String]("id")->row[String]("organ")->row[String]("isname")->row[Int]("level")}).toList)
 
-      println("This is a list of the nodes with similar skills:")
-      println(commStreams.map(row =>{row[String]("id")->row[String]("organ")->row[String]("skill")->row[BigDecimal]("level")}).toList)
-
-
+      //println("This is a list of the nodes with similar skills:")
+     // println(commStreams.map(row =>{row[String]("id")->row[String]("organ")->row[String]("skill")->row[BigDecimal]("level")}).toList)
 
       /**
        * Tail recursively calls itself
