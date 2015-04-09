@@ -32,24 +32,40 @@ object Collaborator {
    * the three programs.
    */
   def main(args: Array[String]): Unit = {
-    println("Hello! this is the second project")
+    println("Hello! this is the second project\n")
+    println("Press enter to begin . . .")
+    Console.readLine()
 
     /**
      * Creates an instance of DbLoader, passing the command line argument (where the file is located in local directory)
      * and runs a method within.
      */
+    println(" ----------")
+    println("| DbLoader |")
+    println(" ----------\n")
+
     val myDbLoader = new DbLoader(args(0))
     myDbLoader.start()
+    println()
 
     /**
      * Creates an instance of QueryCollaborator and runs a method within.
      */
+    println(" -------------------")
+    println("| QueryCollaborator |")
+    println(" -------------------\n")
+
     val myQueryCollaborator = new QueryCollaborator()
     myQueryCollaborator.start()
+    println()
 
     /**
      * Creates an instance of QueryColOfCol and runs a method within.
      */
+    println(" ---------------")
+    println("| QueryColOfCol |")
+    println(" ---------------\n")
+
     val myQueryColOfCol = new QueryColOfCol()
     myQueryColOfCol.start()
 

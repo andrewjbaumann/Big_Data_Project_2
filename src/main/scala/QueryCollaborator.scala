@@ -34,9 +34,11 @@ class QueryCollaborator {
    * Connects to the neo4j database (version run on my machine does not require authentication, whereas other versions
    * may require a different setup).
    */
-  implicit val connection = Neo4jREST()
+  //implicit val connection = Neo4jREST()
   //implicit val connection = Neo4jREST("localhost", 7474, "/db/data/")
-  private var user:String = ""
+  implicit val connection = Neo4jREST("localhost", 7474, "/db/data/", "neo4j", "neo4j")
+
+  private var user, organizationType:String = ""
   private var distance:Double = 0
 
   /**
@@ -64,55 +66,33 @@ class QueryCollaborator {
     }
 
     if(valid == true) {
-      print("Enter user id: ")
+      print("\tEnter user id: ")
       user = Console.readLine()
-      print("Enter distance: ")
+      print("\tEnter organization type: ")
+      organizationType = Console.readLine().toUpperCase
+      print("\tEnter distance: ")
       distance = Console.readDouble()
+
       /**
        * Cypher query to find colleagues of an organization who share similar skills and/or interests within a given
        * distance.
        */
-      val icomm = Cypher(
+      val comm = Cypher(
         """
-          START sn = node(*)
-          WHERE sn.UID = {x}
-          MATCH (sno: OrganizationNode)
-          WHERE (sn-->sno)
-          MATCH (u: UserNode), (o: OrganizationNode), (o -[r: DISTANCE_TO] -sno)
-          WHERE (sn <> u) AND (r.Distance < {y}) AND ((u --> o) OR (u --> sno))
-          MATCH (n), (is-[ir:INTERESTED|SKILLED]-u)
-          WHERE (u-->is<--sn)
-          MATCH (oo: OrganizationNode)
-          WHERE (u-->oo)
-          RETURN u.UID as id, oo.OName as organ, is.Name as isname, ir.Level as level
-         """.stripMargin
-        ).on("x" -> user, "y" -> distance)
-/*
-      val scomm = Cypher(
-        """
-          START sn = node(*)
-          WHERE sn.UID = {x}
-          MATCH (sno: OrganizationNode)
-          WHERE (sn --> sno)
-          MATCH (u: UserNode), (o: OrganizationNode), (o -[r: DISTANCE_TO] -sno)
-          WHERE (sn <> u) AND (r.Distance < {y}) AND ((u --> o) OR (u --> sno))
-          MATCH (s: SkillNode), (s-[sr:SKILLED]-u)
-          WHERE (u -->s<-- sn)
-          RETURN u.UID as id, op.OName as organ, s.SName as skill, sr.SLevel as level
-        """.stripMargin
-      ).on("x" -> user, "y" -> distance)*/
+          MATCH (user:UserNode{UID:{x}}), (oo:OrganizationNode), ((o:OrganizationNode)-[d:DISTANCE_TO]-(userOrg:OrganizationNode{OType:UPPER({type})})), ((u:UserNode)-[r:INTERESTED|SKILLED]-(is))
+          WHERE (user <> u) AND (user-->userOrg) AND (d.Distance <= {y}) AND ((u-->o) OR (u-->userOrg)) AND (u-->is<--user) AND (u-->oo)
+          RETURN u.UID as id, oo.OName as organizationName, is.Name as isName, r.Level as level
+        """).on("x" -> user, "y" -> distance, "type" -> organizationType)
 
-      val commStreami = icomm()
-    //  val commStreams = scomm()
+      val commStream = comm()
+
+      var results = (commStream.map(row =>{row[String]("id")->row[String]("organizationName")->row[String]("isName")->row[Int]("level")}).toList)
 
       /**
        * Prints out a mapped list of returned values from the cypher query.
        */
-      println("This is the list of nodes with similar interests:")
-      println(commStreami.map(row =>{row[String]("id")->row[String]("organ")->row[String]("isname")->row[Int]("level")}).toList)
-
-      //println("This is a list of the nodes with similar skills:")
-     // println(commStreams.map(row =>{row[String]("id")->row[String]("organ")->row[String]("skill")->row[BigDecimal]("level")}).toList)
+      println("\nThis is the list of nodes with similar interests:")
+      println("\t" + results + "\n")
 
       /**
        * Tail recursively calls itself

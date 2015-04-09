@@ -33,11 +33,13 @@ class QueryColOfCol {
    * Connects to the neo4j database (version run on my machine does not require authentication, whereas other versions
    * may require a different setup).
    */
-  implicit val connection = Neo4jREST()
+  //implicit val connection = Neo4jREST()
   //implicit val connection = Neo4jREST("localhost", 7474, "/db/data/")
+  implicit val connection = Neo4jREST("localhost", 7474, "/db/data/", "neo4j", "neo4j")
+
   private var user:String = ""
   private var particularInterests:List[String] = List()
-  private var colOfColList:List[String] = List()
+  private var colOfColList:List[(String, String)] = List()
 
   /**
    * Method that calls the query method.
@@ -54,10 +56,8 @@ class QueryColOfCol {
    * two persons have worked on the same project.
    */
   def query():Unit = {
-    var valid:Boolean = false
-    var response:String = ""
-    var more:Boolean = false
-    var moreResponse:String = ""
+    var valid, more:Boolean = false
+    var response, moreResponse:String = ""
 
     /**
      * Asks user whether they want to query the database or not.
@@ -80,19 +80,19 @@ class QueryColOfCol {
       /**
        * Has user ask for the query user.
        */
-      print("Enter user id: ")
+      print("\tEnter user id: ")
       user = Console.readLine()
 
       /**
        * Has user enter in at least one interest for the colleagues of colleagues.
        */
-      print("Enter a particular interest for the col of col: ")
-      particularInterests = particularInterests.:+(Console.readLine())
+      print("\tEnter a particular interest for the col of col: ")
+      particularInterests = particularInterests.:+(Console.readLine().toUpperCase)
 
       /**
        * Asks user if they want to look for more interests
        */
-      print("(Y/y) to look for more interests: ")
+      print("\n(Y/y) to look for more interests: ")
       moreResponse = Console.readLine()
 
       if(moreResponse == "y" || moreResponse == "Y") {
@@ -103,9 +103,9 @@ class QueryColOfCol {
        * Continually asks the user if they want to look for more interests for the colleagues of colleagues.
        */
       while(more == true) {
-        print("Enter a particular interest for the col of col: ")
-        particularInterests = particularInterests.:+(Console.readLine())
-        print("(Y/y) to look for more interests: ")
+        print("\tEnter a particular interest for the col of col: ")
+        particularInterests = particularInterests.:+(Console.readLine().toUpperCase)
+        print("\n(Y/y) to look for more interests: ")
         moreResponse = Console.readLine()
 
         if(moreResponse == "y" || moreResponse == "Y") {
@@ -116,18 +116,18 @@ class QueryColOfCol {
         }
       }
 
-      println("\nFinding all colleagues of colleagues who have these interests: " + particularInterests)
+      println("\nFinding all colleagues of colleagues who have these interests:")
+      println("\t" + particularInterests)
 
       /**
        * Unwinds interests and finds all cols of cols who have the interests listed.
        */
       val comm = Cypher(
         """
-          START user = node(*)
           UNWIND {myList} as partInt
-          MATCH (user:UserNode), (col:UserNode), (colOfCol:UserNode), (p1:ProjectNode), (p2:ProjectNode), (i:InterestNode{IName:partInt})
-          WHERE (user.UID = {x}) AND (user<>col) AND ((user)-->(p1)<--(col)-->(p2)<--(colOfCol)) AND (colOfCol-->i)
-          RETURN colOfCol.UID as id, count(colOfCol.UID) as counter
+          MATCH (user:UserNode{UID:{x}}), (col:UserNode), (colOfCol:UserNode), (p1:ProjectNode), (p2:ProjectNode), (i:InterestNode{Name:UPPER(partInt)})
+          WHERE (user<>col) AND ((user)-->(p1)<--(col)-->(p2)<--(colOfCol)) AND (colOfCol-->i)
+          RETURN colOfCol.FName as firstName, colOfCol.LName as lastName, count(colOfCol.UID) as counter
         """).on("x" -> user, "myList" -> particularInterests)
 
       val commStream = comm()
@@ -136,13 +136,14 @@ class QueryColOfCol {
        * Prints out a mapped list of returned values from the cypher query while filtering out those who do not have all
        * the interests listed.
        */
-      var myList = (commStream.map(row => {row[String]("id")->row[Int]("counter")}).toList).filterNot(line => line._2 != particularInterests.size)
+      var results = (commStream.map(row => {row[String]("firstName")->row[String]("lastName")->row[Int]("counter")}).toList).filterNot(line => line._2 != particularInterests.size)
 
-      for(x <- myList) {
+      for(x <- results) {
         colOfColList = colOfColList.:+(x._1)
       }
 
-      println("All colleagues of colleagues who have those interests: " + colOfColList + "\n")
+      println("All colleagues of colleagues who have those interests:")
+      println("\t" + colOfColList + "\n")
 
       /**
        * Clears the lists for another query.
