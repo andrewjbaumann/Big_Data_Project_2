@@ -6,7 +6,7 @@ version := "1.0"
 
 scalaVersion := "2.11.6"
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.4" % "test" % "org.scala-lang" % "scala-actors" % "2.11.6" % "scala.collection.immutable"
 
 fork in run := true
 
