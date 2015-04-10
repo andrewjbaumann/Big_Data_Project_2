@@ -66,9 +66,11 @@
       <file leaf-file-name="QueryColOfCol.scala" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/scala/QueryColOfCol.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
+            <state vertical-scroll-proportion="4.2028985">
+              <caret line="167" column="1" selection-start-line="167" selection-start-column="1" selection-end-line="167" selection-end-column="1" />
+              <folding>
+                <element signature="e#1#1660#0" expanded="false" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -558,9 +560,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/QueryColOfCol.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+        <state vertical-scroll-proportion="4.2028985">
+          <caret line="167" column="1" selection-start-line="167" selection-start-column="1" selection-end-line="167" selection-end-column="1" />
+          <folding>
+            <element signature="e#1#1660#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
