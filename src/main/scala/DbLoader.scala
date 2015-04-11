@@ -22,6 +22,8 @@
  * Notes:       Completed(✓) - Tony
  */
 
+import scala.actors.Actor._
+import scala.actors.Actor
 import scala.io.Source
 import org.anormcypher._
 
@@ -30,46 +32,69 @@ import org.anormcypher._
  * entities and relations between them.
  */
 class DbLoader(fileLoc:String) {
-
+  
   /**
    * Connects to the neo4j database (version run on my machine does not require authentication, whereas other versions
    * may require a different setup).
    */
   //implicit val connection = Neo4jREST()
   //implicit val connection = Neo4jREST("localhost", 7474, "/db/data/")
-  implicit val connection = Neo4jREST("localhost", 7474, "/db/data/", "neo4j", "neo4j")
+  implicit val connection = Neo4jREST("localhost", 7474, "/db/data/", "neo4j", "Neo4j")
 
   /**
    * Method that starts by clearing the database of any relations, entities tied to relations, and lone entities for
    * testing.
    */
   def start():Unit = {
+
+    println("CLEARING DATABASE . . .")
+
     Cypher(
       """
         MATCH n-[r]->m, o
         DELETE r, m, n, o
       """).execute()
 
-    print("BUILDING DATABASE\t\t")
+    println("DATABASE CLEARED (✔)")
+    println("BUILDING DATABASE . . .")
 
     /**
-     * calls the different methods within this class to run the different queries on the database. In the methods that
+     * Calls the different methods within this class to run the different queries on the database. In the methods that
      * involve creating entities, since the LOAD CSV query create a node with the header, it is deleted immediately
      * after creation by storing the header id from the file itself and deleting entities with that id title.
      */
-
     createUsers()
-    print("(╯")
-    createSkills()
-    print("°□")
-    createInterests()
-    print("°）")
-    createProjects()
-    print("╯︵")
-    createOrganizations()
-    print("┻━")
+
+    /**
+     * After creating the users, these 4 entity types can be created without dependencies on each other and can be done
+     * concurrently with actors.
+     */
+    val skillsActor = actor {
+      createSkills()
+    }
+
+    val interestsActor = actor {
+      createInterests()
+    }
+
+    val projectsActor = actor {
+      createProjects()
+    }
+
+    val organizationsActor = actor {
+      createOrganizations()
+    }
+
+    /**
+     * After the organization entities have been created, the distances between the organizations can be created by
+     * listening for when the organization actor terminates.
+     */
+    while(organizationsActor.getState != Actor.State.Terminated){
+
+    }
+
     createDistances()
-    print("┻\n")
+
     println("DATABASE BUILD COMPLETE (✔)")
 
     return
@@ -233,7 +258,7 @@ class DbLoader(fileLoc:String) {
 
     Cypher(
       """
-        USING PERIODIC COMMIT 1000
+        USING PERIODIC COMMIT 10000
         LOAD CSV FROM {fileLocation} AS line
         MATCH (o1:OrganizationNode{OName:line[0]}),(o2:OrganizationNode{OName:line[1]})
         CREATE (o1)-[r:DISTANCE_TO{Distance:toFloat(line[2])}]->(o2)
