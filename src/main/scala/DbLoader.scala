@@ -22,8 +22,8 @@
  * Notes:       Completed(✓) - Tony
  */
 
-import scala.actors.Actor._
 import scala.actors.Actor
+import scala.actors.Actor._
 import scala.io.Source
 import org.anormcypher._
 
@@ -51,8 +51,13 @@ class DbLoader(fileLoc:String) {
 
     Cypher(
       """
-        MATCH n-[r]->m, o
-        DELETE r, m, n, o
+        MATCH n-[r]->m
+        DELETE r, m, n
+      """).execute()
+    Cypher(
+      """
+        MATCH n
+        DELETE n
       """).execute()
 
     println("DATABASE CLEARED (✔)")
@@ -121,7 +126,7 @@ class DbLoader(fileLoc:String) {
 
     createDistances()
 
-    while(skillsActor.getState != Actor.State.Terminated || interestsActor.getState != Actor.State.Terminated || projectsActor.getState != Actor.State.Terminated || organizationsActor.getState != Actor.State.Terminated) {
+    while(skillsActor.getState != Actor.State.Terminated && interestsActor.getState != Actor.State.Terminated && projectsActor.getState != Actor.State.Terminated && organizationsActor.getState != Actor.State.Terminated) {
 
     }
 
@@ -166,11 +171,6 @@ class DbLoader(fileLoc:String) {
    * appropriate titles as long as the format is the same.
    */
   def createSkills():Unit = {
-    val src = Source.fromFile("skill.csv")
-    val header = src.getLines().take(1).toList(0).toString()
-    src.close()
-
-    val x:String = header.split(',')(0)
     val file:String = fileLoc + "skill.csv"
 
     Cypher(
@@ -181,11 +181,6 @@ class DbLoader(fileLoc:String) {
         MERGE (ss:SkillNode{Name:line[1]})
         CREATE (u)-[r:SKILLED{Level:toFloat(line[2])}]->(ss)
       """).on("fileLocation" -> file).execute()
-    Cypher(
-      """
-        MATCH (s:SkillNode{Name:{header}})
-        DELETE s
-      """).on("header" -> x).execute()
 
     println("\tSkill Entities (✔)")
 
@@ -198,11 +193,6 @@ class DbLoader(fileLoc:String) {
    * appropriate titles as long as the format is the same.
    */
   def createInterests():Unit = {
-    val src = Source.fromFile("interest.csv")
-    val header = src.getLines().take(1).toList(0).toString()
-    src.close()
-
-    val x:String = header.split(',')(0)
     val file:String = fileLoc + "interest.csv"
 
     Cypher(
@@ -213,11 +203,6 @@ class DbLoader(fileLoc:String) {
         MERGE (ee:InterestNode{Name:line[1]})
         CREATE (u)-[r:INTERESTED{Level:toFloat(line[2])}]->(ee)
       """).on("fileLocation" -> file).execute()
-    Cypher(
-      """"
-        MATCH (i:InterestNode{Name:{header}})
-        DELETE i
-      """).on("header" -> x).execute()
 
     println("\tInterest Entities (✔)")
 
@@ -230,11 +215,6 @@ class DbLoader(fileLoc:String) {
    * appropriate titles as long as the format is the same.
    */
   def createProjects():Unit = {
-    val src = Source.fromFile("project.csv")
-    val header = src.getLines().take(1).toList(0).toString()
-    src.close()
-
-    val x:String = header.split(',')(0)
     val file:String = fileLoc + "project.csv"
 
     Cypher(
@@ -245,11 +225,6 @@ class DbLoader(fileLoc:String) {
         MERGE (pp:ProjectNode{PName:line[1]})
         CREATE (u)-[r:WORKS_ON]->(pp)
       """).on("fileLocation" -> file).execute()
-    Cypher(
-      """"
-        MATCH (p:ProjectNode{PName:{header}})
-        DELETE p
-      """).on("header" -> x).execute()
 
     println("\tProject Entities (✔)")
 
@@ -262,11 +237,6 @@ class DbLoader(fileLoc:String) {
    * need the appropriate titles as long as the format is the same.
    */
   def createOrganizations():Unit = {
-    val src = Source.fromFile("organization.csv")
-    val header = src.getLines().take(1).toList(0).toString()
-    src.close()
-
-    val x:String = header.split(',')(0)
     val file:String = fileLoc + "organization.csv"
 
     Cypher(
@@ -277,11 +247,6 @@ class DbLoader(fileLoc:String) {
         MERGE (oo:OrganizationNode{OName:line[1], OType:line[2]})
         CREATE (u)-[r:BELONGS_TO]->(oo)
       """).on("fileLocation" -> file).execute()
-    Cypher(
-      """
-        MATCH (o:OrganizationNode{OName:{header}})
-        DELETE o
-      """).on("header" -> x).execute()
 
     println("\tOrganization Entities (✔)")
 
