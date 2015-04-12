@@ -138,12 +138,11 @@ class QueryColOfCol {
        */
       var results = (commStream.map(row => {row[String]("firstName")->row[String]("lastName")->row[Int]("counter")}).toList).filterNot(line => line._2 != particularInterests.size)
 
-      for(x <- results) {
-        colOfColList = colOfColList.:+(x._1)
-      }
-
       println("All colleagues of colleagues who have those interests:")
-      println("\t" + colOfColList + "\n")
+
+      for(x <- results) {
+        println("\t" + x._1)
+      }
 
       /**
        * Clears the lists for another query.
