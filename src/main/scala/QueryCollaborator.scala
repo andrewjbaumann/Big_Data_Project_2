@@ -23,9 +23,7 @@
  */
 
 import org.anormcypher._
-//import scala.collection.mutable._
 import scala.collection.immutable._
-
 
 /**
  * QueryCollaborator class that asks the user for a user id and a distance to find other users with common skills and
@@ -39,7 +37,7 @@ class QueryCollaborator {
    */
   //implicit val connection = Neo4jREST()
   //implicit val connection = Neo4jREST("localhost", 7474, "/db/data/")
-  implicit val connection = Neo4jREST("localhost", 7474, "/db/data/", "neo4j", "neo4j")
+  implicit val connection = Neo4jREST("localhost", 7474, "/db/data/", "neo4j", "Neo4j")
 
   private var user, organizationType:String = ""
   private var distance:Double = 0
@@ -60,6 +58,7 @@ class QueryCollaborator {
   def query():Unit = {
     var valid:Boolean = false
     var response:String = ""
+    var resultsList:List[(String,Int,String)] = List()
 
     print("(Y/y) to query database for users with similar skills and/or interests within a bound distance: ")
     response = Console.readLine()
@@ -84,52 +83,37 @@ class QueryCollaborator {
         """
           MATCH (user:UserNode{UID:{x}}), (oo:OrganizationNode), ((o:OrganizationNode)-[d:DISTANCE_TO]-(userOrg:OrganizationNode{OType:UPPER({type})})), ((u:UserNode)-[r:INTERESTED|SKILLED]-(is))
           WHERE (user <> u) AND (user-->userOrg) AND (d.Distance <= {y}) AND ((u-->o) OR (u-->userOrg)) AND (u-->is<--user) AND (u-->oo)
-          RETURN "User:" +u.UID + ". Organization:" + oo.OName + ". Weight: " as ido, is.Name as isName,  r.Level as level
+          RETURN "User: " + u.UID + "; Organization: " + oo.OName + "; Weight: " as ido, is.Name as isName,  r.Level as level
         """).on("x" -> user, "y" -> distance, "type" -> organizationType)
 
       val commStream = comm()
       val results = commStream.map(row =>{row[String]("ido")->row[String]("isName")->row[Int]("level")}).toSet
       val myResults = results.groupBy(it => it._1._1)
 
-      println("\nThis is the list of nodes with similar interests:")
-      var resultsList : List[(String,Int,String)] = List()
+      println("\nAll users within a certain distance ranked by total weight of shared skills and/or interests:")
       iterate(myResults)
 
-      def iterate(aMap : Map[String, Set[(((String),String),Int)]]) : Unit ={
-        if(aMap.size == 0)
+      def iterate(aMap:Map[String, Set[(((String),String),Int)]]):Unit ={
+        var sum:Int = 0
+        var skit:String = "; Shared Skills and/or Interests: "
+
+        if(aMap.size == 0) {
           return
+        }
 
-        var sum : Int = 0;
-        var skit : String = " ";
-
-        aMap.head._2.foreach(it => sum = sum + it._2)
-        aMap.head._2.foreach(it => skit = skit + it._1._2 + "&")
-
+        aMap.head._2.foreach(it => sum += it._2)
+        aMap.head._2.foreach(it => skit += it._1._2 + ", ")
         resultsList = resultsList :+ (aMap.head._1, sum, skit)
-
         iterate(aMap.tail)
       }
 
-      resultsList = resultsList.sortBy(it => it._2)
-      resultsList.foreach(println)
+      resultsList = resultsList.sortBy(it => -it._2)
 
-      /*println("Iteration:")
-      iterateSet(results)
-      def iterateSet(aSet : Set[((((String,String),String),Int))], count : Int): Unit = {
-        if (0 == aSet.size)
-          return
-        aSet.head._1
-        println(count, " and ", aSet.head._1)
-        iterateSet(aSet.tail)
+      for(x <- resultsList) {
+        println("\t" + x)
       }
-      println("Stop")
-      */
 
-
-      /**
-       * Prints out a mapped list of returned values from the cypher query.
-       */
-     //println("\t" + myResults + "\n")
+      println()
 
       /**
        * Tail recursively calls itself

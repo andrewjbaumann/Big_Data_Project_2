@@ -1,4 +1,3 @@
-
 /**
  * Title:       QueryColOfCol.scala
  * Authors:     Andrew Baumann, Tony Zheng
@@ -36,7 +35,7 @@ class QueryColOfCol {
    */
   //implicit val connection = Neo4jREST()
   //implicit val connection = Neo4jREST("localhost", 7474, "/db/data/")
-  implicit val connection = Neo4jREST("localhost", 7474, "/db/data/", "neo4j", "neo4j")
+  implicit val connection = Neo4jREST("localhost", 7474, "/db/data/", "neo4j", "Neo4j")
 
   private var user:String = ""
   private var particularInterests:List[String] = List()

@@ -32,7 +32,7 @@ import org.anormcypher._
  * entities and relations between them.
  */
 class DbLoader(fileLoc:String) {
-  
+
   /**
    * Connects to the neo4j database (version run on my machine does not require authentication, whereas other versions
    * may require a different setup).
@@ -56,6 +56,32 @@ class DbLoader(fileLoc:String) {
       """).execute()
 
     println("DATABASE CLEARED (✔)")
+
+    println("CREATING INDEXES . . .")
+
+    Cypher(
+      """
+        CREATE INDEX ON :UserNode(UID)
+      """).execute()
+    Cypher(
+      """
+        CREATE INDEX ON :SkillNode(Name)
+      """).execute()
+    Cypher(
+      """
+        CREATE INDEX ON :InterestNode(Name)
+      """).execute()
+    Cypher(
+      """
+        CREATE INDEX ON :ProjectNode(PName)
+      """).execute()
+    Cypher(
+      """
+        CREATE INDEX ON :OrganizationNode(OName)
+      """).execute()
+
+    println("INDEXES CREATED (✔)")
+
     println("BUILDING DATABASE . . .")
 
     /**
@@ -89,11 +115,15 @@ class DbLoader(fileLoc:String) {
      * After the organization entities have been created, the distances between the organizations can be created by
      * listening for when the organization actor terminates.
      */
-    while(organizationsActor.getState != Actor.State.Terminated){
+    while(organizationsActor.getState != Actor.State.Terminated) {
 
     }
 
     createDistances()
+
+    while(skillsActor.getState != Actor.State.Terminated || interestsActor.getState != Actor.State.Terminated || projectsActor.getState != Actor.State.Terminated || organizationsActor.getState != Actor.State.Terminated) {
+
+    }
 
     println("DATABASE BUILD COMPLETE (✔)")
 
@@ -125,6 +155,8 @@ class DbLoader(fileLoc:String) {
         DELETE u
       """).on("header" -> x).execute()
 
+    println("\tUser Entities (✔)")
+
     return
   }
 
@@ -155,6 +187,8 @@ class DbLoader(fileLoc:String) {
         DELETE s
       """).on("header" -> x).execute()
 
+    println("\tSkill Entities (✔)")
+
     return
   }
 
@@ -176,7 +210,7 @@ class DbLoader(fileLoc:String) {
         USING PERIODIC COMMIT 10000
         LOAD CSV FROM {fileLocation} AS line
         MATCH (u:UserNode{UID:line[0]})
-        MERGE (ee:InterestNode {Name:line[1]})
+        MERGE (ee:InterestNode{Name:line[1]})
         CREATE (u)-[r:INTERESTED{Level:toFloat(line[2])}]->(ee)
       """).on("fileLocation" -> file).execute()
     Cypher(
@@ -184,6 +218,8 @@ class DbLoader(fileLoc:String) {
         MATCH (i:InterestNode{Name:{header}})
         DELETE i
       """).on("header" -> x).execute()
+
+    println("\tInterest Entities (✔)")
 
     return
   }
@@ -206,7 +242,7 @@ class DbLoader(fileLoc:String) {
         USING PERIODIC COMMIT 10000
         LOAD CSV FROM {fileLocation} AS line
         MATCH (u:UserNode{UID:line[0]})
-        MERGE (pp:ProjectNode {PName:line[1]})
+        MERGE (pp:ProjectNode{PName:line[1]})
         CREATE (u)-[r:WORKS_ON]->(pp)
       """).on("fileLocation" -> file).execute()
     Cypher(
@@ -214,6 +250,8 @@ class DbLoader(fileLoc:String) {
         MATCH (p:ProjectNode{PName:{header}})
         DELETE p
       """).on("header" -> x).execute()
+
+    println("\tProject Entities (✔)")
 
     return
   }
@@ -236,7 +274,7 @@ class DbLoader(fileLoc:String) {
         USING PERIODIC COMMIT 10000
         LOAD CSV FROM {fileLocation} AS line
         MATCH (u:UserNode{UID:line[0]})
-        MERGE (oo:OrganizationNode {OName:line[1], OType:line[2]})
+        MERGE (oo:OrganizationNode{OName:line[1], OType:line[2]})
         CREATE (u)-[r:BELONGS_TO]->(oo)
       """).on("fileLocation" -> file).execute()
     Cypher(
@@ -244,6 +282,8 @@ class DbLoader(fileLoc:String) {
         MATCH (o:OrganizationNode{OName:{header}})
         DELETE o
       """).on("header" -> x).execute()
+
+    println("\tOrganization Entities (✔)")
 
     return
   }
@@ -260,9 +300,11 @@ class DbLoader(fileLoc:String) {
       """
         USING PERIODIC COMMIT 10000
         LOAD CSV FROM {fileLocation} AS line
-        MATCH (o1:OrganizationNode{OName:line[0]}),(o2:OrganizationNode{OName:line[1]})
+        MATCH (o1:OrganizationNode{OName:line[0]}), (o2:OrganizationNode{OName:line[1]})
         CREATE (o1)-[r:DISTANCE_TO{Distance:toFloat(line[2])}]->(o2)
       """).on("fileLocation" -> file).execute()
+
+    println("\tDistance Relations (✔)")
 
     return
   }
