@@ -18,7 +18,7 @@
  *              more details.
  * Build with:  Scala IDE (Eclipse or IntelliJ) or using the following commands on the glab machines
  *              To compile: scalac *.scala
- *              To run:     scala Collaborator 'fileLocation'
+ *              To run:     scala Collaborator
  * Notes:       Completed(✓) - Tony
  */
 
@@ -31,7 +31,7 @@ import org.anormcypher._
  * DbLoader class that takes in a string input (file location of csvs) and runs queries on the neo4j database, creating
  * entities and relations between them.
  */
-class DbLoader(fileLoc:String) {
+object DbLoader {
 
   /**
    * Connects to the neo4j database (version run on my machine does not require authentication, whereas other versions
@@ -40,12 +40,16 @@ class DbLoader(fileLoc:String) {
   //implicit val connection = Neo4jREST()
   //implicit val connection = Neo4jREST("localhost", 7474, "/db/data/")
   implicit val connection = Neo4jREST("localhost", 7474, "/db/data/", "neo4j", "Neo4j")
+  private var fileLoc = ""
 
   /**
    * Method that starts by clearing the database of any relations, entities tied to relations, and lone entities for
    * testing.
    */
   def start():Unit = {
+
+    val getCurrentDirectory:String = new java.io.File( "." ).getCanonicalPath
+    fileLoc = "file:///" + getCurrentDirectory + "/"
 
     println("CLEARING DATABASE . . .")
 

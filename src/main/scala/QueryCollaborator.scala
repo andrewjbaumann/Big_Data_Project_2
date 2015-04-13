@@ -18,7 +18,7 @@
  *              more details.
  * Build with:  Scala IDE (Eclipse or IntelliJ) or using the following commands on the glab machines
  *              To compile: scalac *.scala
- *              To run:     scala Collaborator 'fileLocation'
+ *              To run:     scala Collaborator
  * Notes:       Completed(?) - Andrew
  */
 
@@ -29,7 +29,7 @@ import scala.collection.immutable._
  * QueryCollaborator class that asks the user for a user id and a distance to find other users with common skills and
  * interests. Output will be ordered by the weight of total skills and interests
  */
-class QueryCollaborator {
+object QueryCollaborator {
 
   /**
    * Connects to the neo4j database (version run on my machine does not require authentication, whereas other versions
@@ -58,7 +58,7 @@ class QueryCollaborator {
   def query():Unit = {
     var valid:Boolean = false
     var response:String = ""
-    var resultsList:List[(String,Int,String)] = List()
+    var resultsList:List[(String,Int)] = List()
 
     print("(Y/y) to query database for users with similar skills and/or interests within a bound distance: ")
     response = Console.readLine()
@@ -74,36 +74,51 @@ class QueryCollaborator {
       organizationType = Console.readLine().toUpperCase
       print("\tEnter distance: ")
       distance = Console.readDouble()
-
       /**
        * Cypher query to find colleagues of an organization who share similar skills and/or interests within a given
        * distance.
        */
       val comm = Cypher(
         """
-          MATCH (user:UserNode{UID:{x}}), (oo:OrganizationNode), ((o:OrganizationNode)-[d:DISTANCE_TO]-(userOrg:OrganizationNode{OType:UPPER({type})})), ((u:UserNode)-[r:INTERESTED|SKILLED]-(is))
+          MATCH (oo:OrganizationNode), ((o:OrganizationNode)-[d:DISTANCE_TO]-(userOrg:OrganizationNode{OType:UPPER({type})})), ((u:UserNode)-[r:INTERESTED|SKILLED]-(is)-[ur]-(user:UserNode{UID:{x}}))
           WHERE (user <> u) AND (user-->userOrg) AND (d.Distance <= {y}) AND ((u-->o) OR (u-->userOrg)) AND (u-->is<--user) AND (u-->oo)
-          RETURN "User: " + u.UID + "; Organization: " + oo.OName + "; Weight: " as ido, is.Name as isName,  r.Level as level
+          RETURN "User: " + u.UID + "; Organization: " + oo.OName + "; Weight: " as ido, is.Name as isName, r.Level as level, ur.Level as ulevel
         """).on("x" -> user, "y" -> distance, "type" -> organizationType)
 
       val commStream = comm()
-      val results = commStream.map(row =>{row[String]("ido")->row[String]("isName")->row[Int]("level")}).toSet
-      val myResults = results.groupBy(it => it._1._1)
+      val results = commStream.map(row =>{row[String]("ido")->row[String]("isName")->row[Int]("level")->row[Int]("ulevel")}).toSet
+      val myResults = results.groupBy(it => it._1._1._1)
 
       println("\nAll users within a certain distance ranked by total weight of shared skills and/or interests:")
+
       iterate(myResults)
 
-      def iterate(aMap:Map[String, Set[(((String),String),Int)]]):Unit ={
-        var sum:Int = 0
-        var skit:String = "; Shared Skills and/or Interests: "
-
+      def iterate(aMap:Map[String, Set[((((String),String),Int),Int)]]):Unit = {
         if(aMap.size == 0) {
           return
         }
+        var intSum = 0
+        var skiMax = 0
 
-        aMap.head._2.foreach(it => sum += it._2)
-        aMap.head._2.foreach(it => skit += it._1._2 + ", ")
-        resultsList = resultsList :+ (aMap.head._1, sum, skit)
+        aMap.head._2.foreach(it => secIterate(it))
+
+        def secIterate(aSet:((((String), String), Int), Int)):Unit = {
+          var result = 0;
+
+          if(aSet._1._1._2.charAt(0) == 'S') {
+            if(aSet._2 > aSet._1._2) {
+              result = aSet._2
+            }
+            else {
+              result = aSet._1._2
+            }
+          }
+          else if (aSet._1._1._2.charAt(0) == 'I') {
+            result = aSet._1._2 + aSet._2
+          }
+
+          resultsList = resultsList :+ (aMap.head._1 + aSet._1._1._2, result)
+        }
         iterate(aMap.tail)
       }
 
@@ -112,8 +127,6 @@ class QueryCollaborator {
       for(x <- resultsList) {
         println("\t" + x)
       }
-
-      println()
 
       /**
        * Tail recursively calls itself
@@ -129,3 +142,5 @@ class QueryCollaborator {
     }
   }
 }
+
+

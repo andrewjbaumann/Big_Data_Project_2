@@ -18,7 +18,7 @@
  *              more details.
  * Build with:  Scala IDE (Eclipse or IntelliJ) or using the following commands on the glab machines
  *              To compile: scalac *.scala
- *              To run:     scala Collaborator 'fileLocation'
+ *              To run:     scala Collaborator
  * Notes:       Completed(✓) - Tony/Andrew
  */
 
@@ -27,7 +27,7 @@ import org.anormcypher._
 /**
  * QueryColOfCol class that asks the user for a user id to find other colleagues of colleagues with common interests.
  */
-class QueryColOfCol {
+object QueryColOfCol {
 
   /**
    * Connects to the neo4j database (version run on my machine does not require authentication, whereas other versions
