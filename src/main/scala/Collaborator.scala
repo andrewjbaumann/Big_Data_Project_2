@@ -44,7 +44,7 @@ object Collaborator {
     println("| DbLoader |")
     println(" ----------\n")
 
-    val myDbLoader = new DbLoader(args(0))
+    val myDbLoader = DbLoader
     myDbLoader.start()
     println()
 
@@ -55,7 +55,7 @@ object Collaborator {
     println("| QueryCollaborator |")
     println(" -------------------\n")
 
-    val myQueryCollaborator = new QueryCollaborator()
+    val myQueryCollaborator = QueryCollaborator
     myQueryCollaborator.start()
     println()
 
@@ -66,7 +66,7 @@ object Collaborator {
     println("| QueryColOfCol |")
     println(" ---------------\n")
 
-    val myQueryColOfCol = new QueryColOfCol()
+    val myQueryColOfCol = QueryColOfCol
     myQueryColOfCol.start()
 
     return
