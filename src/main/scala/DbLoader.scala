@@ -47,9 +47,26 @@ object DbLoader {
    * testing.
    */
   def start():Unit = {
+    var valid:Boolean = false
+    var response:String = ""
 
-    val getCurrentDirectory:String = new java.io.File( "." ).getCanonicalPath
-    fileLoc = "file:///" + getCurrentDirectory + "/"
+    print("(Y/y) to enter an absolute path where the folder is, or a relative path will be used and the folder name will be asked: ")
+    response = Console.readLine()
+
+    if(response == "y" || response == "Y") {
+      print("Enter absolute path where the folder is: ")
+      fileLoc = "file://" + Console.readLine() + "/"
+      println()
+    }
+
+    else {
+      val getCurrentDirectory: String = new java.io.File(".").getCanonicalPath
+      print("Relative path chosen, enter folder name: ")
+      fileLoc = "file://" + getCurrentDirectory + "/" + Console.readLine() + "/"
+      println()
+    }
+
+    println(fileLoc)
 
     println("CLEARING DATABASE . . .")
 
