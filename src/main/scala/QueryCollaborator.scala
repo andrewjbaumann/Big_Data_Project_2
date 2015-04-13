@@ -19,7 +19,7 @@
  * Build with:  Scala IDE (Eclipse or IntelliJ) or using the following commands on the glab machines
  *              To compile: scalac *.scala
  *              To run:     scala Collaborator
- * Notes:       Completed(?) - Andrew
+ * Notes:       Completed(✓) - Andrew
  */
 
 import org.anormcypher._
