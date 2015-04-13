@@ -19,7 +19,7 @@
  * Build with:  Scala IDE (Eclipse or IntelliJ) or using the following commands on the glab machines
  *              To compile: scalac *.scala
  *              To run:     scala Collaborator
- * Notes:       Completed(✓) - Tony
+ * Notes:       Completed(✓) - Tony/Andrew
  */
 
 import scala.actors.Actor
@@ -55,7 +55,7 @@ object DbLoader {
 
     if(response == "y" || response == "Y") {
       print("Enter absolute path where the folder is: ")
-      fileLoc = "file://" + Console.readLine() + "/"
+      fileLoc = "file://" + Console.readLine() + 
       println()
     }
 
