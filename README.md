@@ -1,4 +1,4 @@
-# Big_Data_Project_2
+# Big Data Project 2
 
  * Title:       Collaborator.scala
  * Authors:     Andrew Baumann, Tony Zheng
